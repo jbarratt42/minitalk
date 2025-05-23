@@ -5,5 +5,5 @@ make && ./server
 ```
 in another terminal, same directory
 ```
-while true; do ./client <server pid> <long string>; sleep 1; done
+for i in {1..10}; do ./client <server pid> <long string>; sleep 1; done
 ```
