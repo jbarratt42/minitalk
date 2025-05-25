@@ -6,7 +6,7 @@
 /*   By: jbarratt <jbarratt@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/21 10:24:22 by jbarratt          #+#    #+#             */
-/*   Updated: 2025/05/25 12:56:09 by jbarratt         ###   ########.fr       */
+/*   Updated: 2025/05/25 13:24:39 by jbarratt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ void	send_char(int pid, char c)
 }
 */
 
-/* send the bits_sent-th bit of message unless the previous byte was '\0'
+/* send the bits_sent-th bit of message
  * - on first invocation, set message and pid
  * - on subsequent invocations, ignore the parameters
  * - if the last byte sent was NUL, exit normally
@@ -40,7 +40,7 @@ void	send_char(int pid, char c)
  */
 void	send_next_bit(char *set_message, int set_pid)
 {
-	static char *message;
+	static char	*message;
 	static int	pid;
 	static int	bits_sent;
 	int			bits_sent_before;
