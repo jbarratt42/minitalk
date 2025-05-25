@@ -6,12 +6,13 @@
 /*   By: jbarratt <jbarratt@student.42berlin.de>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/21 10:24:22 by jbarratt          #+#    #+#             */
-/*   Updated: 2025/05/22 14:30:23 by jbarratt         ###   ########.fr       */
+/*   Updated: 2025/05/25 12:56:09 by jbarratt         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
+/*
 void	send_bit(int pid, int b)
 {
 	if (b)
@@ -29,11 +30,39 @@ void	send_char(int pid, char c)
 	while (i < 8)
 		send_bit(pid, c >> i++ & 1);
 }
+*/
 
-void	ack(int signal)
+/* send the bits_sent-th bit of message unless the previous byte was '\0'
+ * - on first invocation, set message and pid
+ * - on subsequent invocations, ignore the parameters
+ * - if the last byte sent was NUL, exit normally
+ * (increment bits_sent before kill() to avoid a race condition)
+ */
+void	send_next_bit(char *set_message, int set_pid)
 {
-	write(1, ".", 1);
+	static char *message;
+	static int	pid;
+	static int	bits_sent;
+	int			bits_sent_before;
+
+	if (!message)
+	{
+		message = set_message;
+		pid = set_pid;
+	}
+	if (bits_sent / 8 && !message[bits_sent / 8 - 1])
+		exit(0);
+	bits_sent_before = bits_sent++;
+	if (message[bits_sent_before / 8] >> bits_sent_before % 8 & 1)
+		kill(pid, SIGUSR2);
+	else
+		kill(pid, SIGUSR1);
+}
+
+void	handle_ack(int signal)
+{
 	(void)signal;
+	send_next_bit(NULL, 0);
 }
 
 int	main(int argc, char **argv)
@@ -41,13 +70,15 @@ int	main(int argc, char **argv)
 	int	pid;
 
 	if (argc != 3)
-		return (1);
-	pid = ft_atoi(argv[1]);
-	signal(SIGUSR1, ack);
-	while (*argv[2])
 	{
-		send_char(pid, *argv[2]);
-		argv[2]++;
+		ft_printf("usage: client <server_pid> <message>\n");
+		return (1);
 	}
-	send_char(pid, '\0');
+	pid = ft_atoi(argv[1]);
+	if (!pid)
+		return (1);
+	signal(SIGUSR1, handle_ack);
+	send_next_bit(argv[2], pid);
+	while (1)
+		sleep(1);
 }
